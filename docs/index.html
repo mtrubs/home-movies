@@ -17,29 +17,25 @@
             height: 100vh;
         }
 
+        #popup-title {
+            margin-top: 0;
+            margin-bottom: 0.25em;
+            border-bottom-style: double;
+        }
+
         .popup-body {
             background: #f9f1b1;
-            padding: 3em;
+            padding: 0.5em;
             margin: 1em;
             border: 2px solid black;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-rows: max-content;
         }
 
-        .youtube-container {
-            overflow: hidden;
-            width: 100%;
-            /* Keep it the right aspect-ratio */
-            /*aspect-ratio: 16/9;*/
-            /* No clicking/hover effects */
-            /*pointer-events: none;*/
-        }
-
-        .youtube-container iframe {
-            /* Extend it beyond the viewport... */
-            width: 300%;
-            height: 75%;
-            /* ...and bring it back again */
-            margin-left: -100%;
+        .header {
+            margin-bottom: 1em;
+            margin-top: 1em;
         }
 
         .popup-content {
@@ -48,11 +44,13 @@
 
         #popup-frame {
             border: 0;
+            width: 100%;
+            height: 100%;
         }
 
         /*noinspection CssUnusedSymbol*/
         .show {
-            display: block !important;
+            display: grid !important;
         }
 
         .row {
@@ -62,6 +60,8 @@
 
             .column {
                 flex: 25%;
+                width: 100%;
+                text-align: center;
 
                 /*noinspection CssUnusedSymbol*/
 
@@ -70,6 +70,7 @@
                     vertical-align: middle;
                     padding-left: 4px;
                     padding-right: 4px;
+                    width: 30%;
                 }
             }
         }
@@ -187,8 +188,8 @@
                             // TODO: description would be nice to search by too
                             content.alt = data.title;
                             content.src = data.thumbnail_url;
-                            content.hight = data.thumbnail_height;
-                            content.width = data.thumbnail_width;
+                            content.style.maxHeight = data.thumbnail_height;
+                            content.style.maxWidth = data.thumbnail_width;
                             content.id = id;
                             column.appendChild(content);
                             content.onclick = () => popup(content)
