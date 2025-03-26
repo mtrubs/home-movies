@@ -1,0 +1,95 @@
+<html lang="en">
+<head>
+    <title>Rubino Home Movies</title>
+    <style>
+        /*noinspection CssUnusedSymbol*/
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0 4px;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .column {
+            flex: 25%;
+            padding: 0 4px;
+
+            /*noinspection CssUnusedSymbol*/
+
+            .item {
+                margin-top: 8px;
+                vertical-align: middle;
+            }
+        }
+    </style>
+    <script type="text/javascript">
+        function filter(input) {
+            const searchValue = input.value.toLowerCase();
+            const items = document.querySelectorAll(".column");
+            items.forEach(item => {
+                const title = item.querySelector(".item").alt.toLowerCase();
+                if (title.includes(searchValue)) {
+                    item.style.display = "block";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+<div id="table" class="table">
+    <div class="header">
+        <label for="search">Search</label>
+        <input type="text" name="search" id="search" placeholder="Search for a movie..." onInput="filter(this)"/>
+    </div>
+    <script type="application/javascript">
+        // Array.from(document.querySelectorAll("a#thumbnail-anchor")).map(element => element.href.split("/")[4]);
+        const videos = ['XJu2bgpG-DU', 'vw22orJeChk', 'lpPzisntKoQ', 'YhkunpmG0VU', '9qqdq9C8f8w', 'ayht2XW33wc', 'a9KZtaShu-w', 'kjv1F8aQkzs', 'f_tdaSNnhzE', 'dblz3_BBe9E', 'PTuOCnHX-tQ', 'S1q2aEnocZM', 'UFWHGTe3I4o', 'y9mdwmmQZm0', 'IgWG6O0AB1Q', '758vAhvmUGw', 'wTP3N5j_E1g', 'wPdK2YT60ww', 'NdY6yuBbU-Y', 'ONFbij5pYP8', 'UCbzEXCu2UM', 'Vs9JPkSFc40', 'LlKGO3I31bg', '_UN-RL3URMY', 'my897h9ttbc', 'JEbTPRRPZFQ', 'TkRIi4wYDjA', 'qjFQxlhCa5U']
+        const table = document.getElementById("table");
+        const columns = 3;
+
+        let rowIndex = 0;
+        for (let i = 0; i < videos.length; i += columns) {
+            const row = document.createElement("div");
+            row.classList.add("row")
+            for (let j = 0; j < columns; j++) {
+                if (i + j < videos.length) {
+                    const id = videos[i + j];
+                    // https://www.youtube.com/oembed?url=http%3A//youtube.com/watch%3Fv%3Dvw22orJeChk&format=json
+                    fetch(`https://www.youtube.com/oembed?url=http%3A//youtube.com/watch%3Fv%3D${id}&format=json`)
+                        .then(resp => {
+                            if (!resp.ok) {
+                                throw new Error(`HTTP error! status: ${resp.status}`);
+                            }
+                            return resp.json();
+                        })
+                        .then(data => {
+                            const cell = document.createElement("div");
+                            cell.classList.add("column");
+                            const content = document.createElement("img");
+                            content.classList.add("item");
+                            // TODO: description would be nice to search by too
+                            content.alt = data.title;
+                            content.src = data.thumbnail_url;
+                            content.hight = data.thumbnail_height;
+                            content.width = data.thumbnail_width;
+                            cell.appendChild(content);
+                            row.appendChild(cell);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching video data:', error);
+                        })
+                }
+            }
+            table.appendChild(row);
+            rowIndex++;
+        }
+        // <iframe src="https://www.youtube.com/embed/XJu2bgpG-DU"
+        //   title="YouTube video player" frameborder="0"
+        //   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        //   referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    </script>
+</div>
+</body>
+</html>
