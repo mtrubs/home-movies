@@ -1,7 +1,60 @@
 <html lang="en">
 <head>
     <title>Rubino Home Movies</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1"/>
+    <link rel="icon" type="image/x-icon" href="./images/blueberry.png">
     <style>
+        body {
+            background: antiquewhite;
+        }
+
+        #popup {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .popup-body {
+            background: #f9f1b1;
+            padding: 3em;
+            margin: 1em;
+            border: 2px solid black;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .youtube-container {
+            overflow: hidden;
+            width: 100%;
+            /* Keep it the right aspect-ratio */
+            /*aspect-ratio: 16/9;*/
+            /* No clicking/hover effects */
+            /*pointer-events: none;*/
+        }
+
+        .youtube-container iframe {
+            /* Extend it beyond the viewport... */
+            width: 300%;
+            height: 75%;
+            /* ...and bring it back again */
+            margin-left: -100%;
+        }
+
+        .popup-content {
+            text-align: center;
+        }
+
+        #popup-frame {
+            border: 0;
+        }
+
+        /*noinspection CssUnusedSymbol*/
+        .show {
+            display: block !important;
+        }
+
         .row {
             display: flex;
             flex-wrap: wrap;
@@ -20,9 +73,37 @@
                 }
             }
         }
-
     </style>
     <script type="text/javascript">
+        let scrolling = false;
+        let timer;
+        const delay = 250; // Adjust as needed
+
+        window.addEventListener('scroll', () => {
+            scrolling = true;
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                scrolling = false;
+            }, delay);
+        });
+
+        window.addEventListener('click', (event) => {
+            if (scrolling) {
+                event.preventDefault(); // Prevent the click
+                event.stopPropagation();
+            } else {
+                const popup = event.target.closest('#popup');
+                const closePopup = popup && popup.classList && popup.classList.contains('show');
+                if (closePopup) {
+                    popup.classList.remove('show')
+                }
+                document.getElementById('popup-frame').contentWindow.postMessage(
+                    '{"event":"command","func":"pauseVideo","args":""}',
+                    '*'
+                );
+            }
+        });
+
         function filter(input) {
             const searchValue = input.value.trim().toLowerCase();
             const items = document.querySelectorAll(".item");
@@ -38,11 +119,40 @@
         }
 
         function popup(element) {
-            console.log(element.id)
+            const frame = document.getElementById('popup-frame');
+            // noinspection SpellCheckingInspection
+            frame.src = `https://www.youtube.com/embed/${element.id}?enablejsapi=1`
+            frame.onload = () => {
+                document.getElementById('popup-title').textContent = element.alt;
+                const popup = document.getElementById('popup');
+                popup.style.top = "0";
+                popup.style.left = "0";
+                popup.classList.add('show');
+                // wait then play the video
+                setTimeout(() => {
+                    frame.contentWindow.postMessage(
+                        '{"event":"command","func":"playVideo","args":""}',
+                        '*'
+                    );
+                }, 500);
+            }
         }
     </script>
 </head>
 <body>
+
+<div id="popup">
+    <div class="popup-body">
+        <h1 id="popup-title"></h1>
+        <div class="popup-content youtube-container">
+            <iframe id="popup-frame"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    allowfullscreen></iframe>
+        </div>
+    </div>
+</div>
+
 <div id="table" class="table">
     <div class="header">
         <label for="search">Search</label>
@@ -52,8 +162,11 @@
         <div id="column" class="column">
             <script type="application/javascript">
                 // Array.from(document.querySelectorAll("a#thumbnail-anchor")).map(element => element.href.split("/")[4]);
+                // noinspection SpellCheckingInspection
                 const page1 = ['XJu2bgpG-DU', 'vw22orJeChk', 'lpPzisntKoQ', 'YhkunpmG0VU', '9qqdq9C8f8w', 'ayht2XW33wc', 'a9KZtaShu-w', 'kjv1F8aQkzs', 'f_tdaSNnhzE', 'dblz3_BBe9E', 'PTuOCnHX-tQ', 'S1q2aEnocZM', 'UFWHGTe3I4o', 'y9mdwmmQZm0', 'IgWG6O0AB1Q', '758vAhvmUGw', 'wTP3N5j_E1g', 'wPdK2YT60ww', 'NdY6yuBbU-Y', 'ONFbij5pYP8', 'UCbzEXCu2UM', 'Vs9JPkSFc40', 'LlKGO3I31bg', '_UN-RL3URMY', 'my897h9ttbc', 'JEbTPRRPZFQ', 'TkRIi4wYDjA', 'qjFQxlhCa5U']
+                // noinspection SpellCheckingInspection
                 const page2 = ['dpQow-VGF5Y', 'TS-YKr15AwY', 'TZMjzyO1Gvc', 'ZvPYUO7-HDg', 'OwyXSrqJ0Dw', 'FFXEIPHot1c']
+                // noinspection SpellCheckingInspection
                 const page3 = ['5yCHbG185TU', 'exEQ_eLRH-s', 'hR9-74dVyb4', 'DUZbi6xiLTs', 'ZruDlbnHhuY', 'HcV05Ktkfe4', 'PkHWYMYM6Rk', 'ijdBk3EJTI8']
                 const videos = page1.concat(page2).concat(page3);
                 const column = document.getElementById("column");
@@ -67,6 +180,7 @@
                             }
                             return resp.json();
                         })
+                        /** @type {{ thumbnail_url: string, thumbnail_height: string, title: string, thumbnail_width: string }} */
                         .then(data => {
                             const content = document.createElement("img");
                             content.classList.add("item");
@@ -77,20 +191,16 @@
                             content.width = data.thumbnail_width;
                             content.id = id;
                             column.appendChild(content);
-                            // TODO: onClick
                             content.onclick = () => popup(content)
                         })
                         .catch(error => {
                             console.error('Error fetching video data:', error);
                         })
                 });
-                // <iframe src="https://www.youtube.com/embed/XJu2bgpG-DU"
-                //   title="YouTube video player" frameborder="0"
-                //   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                //   referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
             </script>
         </div>
     </div>
 </div>
+
 </body>
 </html>
